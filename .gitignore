@@ -1,16 +1,43 @@
-# Logs
-logs
-*.log
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+.next/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-dev-debug.log
+.pnpm-debug.log*
 
-# Dependency directories
-node_modules/
-
-# Environment variables
+# Local ENV files
+.env*.local
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
 
 # Editor directories and files
 .idea
@@ -21,11 +48,17 @@ node_modules/
 *.sln
 *.sw?
 
-# OS specific
-.DS_Store
+# Logs
+logs
+*.log
 
+.claude/
 CLAUDE.md
 
 # Planning and Taskmaster
 .taskmaster
 .planning
+
+# Task files
+tasks.json
+tasks/ 
