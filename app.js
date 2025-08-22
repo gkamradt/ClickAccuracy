@@ -124,10 +124,12 @@ let runState = new RunState();
 // Helper Functions
 
 // Random target placement
-function randomTarget(side) {
-    return { 
-        x: Math.random() * side, 
-        y: Math.random() * side 
+function randomTarget(side, radius) {
+    const min = radius;
+    const max = side - radius;
+    return {
+        x: min + Math.random() * (max - min),
+        y: min + Math.random() * (max - min)
     };
 }
 
@@ -207,19 +209,19 @@ function removeTarget(gameArea) {
 }
 
 function updateTargetPosition(gameArea) {
-    const containerSize = gameArea.offsetWidth;
-    runState.target = randomTarget(containerSize);
+    const containerSize = gameArea.clientWidth;
+    runState.target = randomTarget(containerSize, runState.currentR);
     renderTarget(gameArea, runState.target.x, runState.target.y, runState.currentR);
 }
 
 // State Transition Functions
 
 function transitionToPlaying(gameArea) {
-    const containerSize = gameArea.offsetWidth; // Square, so width = height
+    const containerSize = gameArea.clientWidth; // Square, so width = height
     runState.startGame(containerSize);
-    
+
     // Place first target
-    runState.target = randomTarget(containerSize);
+    runState.target = randomTarget(containerSize, runState.currentR);
     renderTarget(gameArea, runState.target.x, runState.target.y, runState.currentR);
 }
 
