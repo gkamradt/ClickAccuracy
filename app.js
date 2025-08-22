@@ -244,12 +244,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const liveStats = document.getElementById('live-stats');
     const scorecard = document.getElementById('scorecard');
     
+    // Game over modal elements
+    const gameOverModal = document.getElementById('game-over-modal');
+    const restartModalBtn = document.getElementById('restart-modal-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const shootingRange = document.getElementById('shooting-range');
+    
     // Get stat display elements
     const statHits = document.getElementById('stat-hits');
     const statAvgAccuracy = document.getElementById('stat-avg-accuracy');
     const statBestAccuracy = document.getElementById('stat-best-accuracy');
     const statCurrentSize = document.getElementById('stat-current-size');
     const statElapsedTime = document.getElementById('stat-elapsed-time');
+    
+    // Get scorecard elements (old inline scorecard)
+    const scoreHits = document.getElementById('score-hits');
+    const scoreAvgAccuracy = document.getElementById('score-avg-accuracy');
+    const scoreBestAccuracy = document.getElementById('score-best-accuracy');
+    const scoreFinalSize = document.getElementById('score-final-size');
+    const scoreDuration = document.getElementById('score-duration');
+    
+    // Get final stats elements (new modal)
+    const finalHits = document.getElementById('final-hits');
+    const finalAvgAccuracy = document.getElementById('final-avg-accuracy');
+    const finalBestAccuracy = document.getElementById('final-best-accuracy');
+    const finalTargetSize = document.getElementById('final-target-size');
+    const finalDuration = document.getElementById('final-duration');
     
     // Timer interval reference
     let timerInterval = null;
@@ -296,6 +316,154 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(timerInterval);
             timerInterval = null;
         }
+    }
+    
+    // Update scorecard display
+    function updateScorecard() {
+        if (runState.phase !== 'ended') return;
+        
+        // Update final scores
+        scoreHits.textContent = runState.hits;
+        scoreAvgAccuracy.textContent = formatPercentage(runState.getAverageAccuracy());
+        scoreBestAccuracy.textContent = formatPercentage(runState.bestAccuracy);
+        scoreFinalSize.textContent = runState.finalRadius + 'px';
+        scoreDuration.textContent = formatTime(runState.getDuration());
+        
+        // Persist to localStorage (optional feature)
+        try {
+            const scorecardData = {
+                hits: runState.hits,
+                avgAccuracy: runState.getAverageAccuracy(),
+                bestAccuracy: runState.bestAccuracy,
+                finalRadius: runState.finalRadius,
+                duration: runState.getDuration(),
+                timestamp: Date.now()
+            };
+            localStorage.setItem('click-accuracy:last', JSON.stringify(scorecardData));
+        } catch (e) {
+            console.warn('Could not save scorecard to localStorage:', e);
+        }
+    }
+    
+    // Show scorecard and hide live stats (legacy function - keeping for compatibility)
+    function showScorecard() {
+        liveStats.classList.add('hidden');
+        updateScorecard();
+        scorecard.classList.remove('hidden');
+        
+        console.log('Scorecard displayed:', {
+            hits: runState.hits,
+            avgAccuracy: formatPercentage(runState.getAverageAccuracy()),
+            bestAccuracy: formatPercentage(runState.bestAccuracy),
+            finalSize: runState.finalRadius + 'px',
+            duration: formatTime(runState.getDuration())
+        });
+    }
+    
+    // Create shooting range visualization
+    function createShootingRangeVisualization() {
+        // Clear previous visualization
+        shootingRange.innerHTML = '';
+        
+        // Set up coordinate system (600x600 visualization area)
+        const vizSize = 600;
+        const centerX = vizSize / 2;
+        const centerY = vizSize / 2;
+        
+        // Find the maximum distance to scale properly
+        let maxDistance = 0;
+        runState.logs.forEach(log => {
+            const distance = Math.hypot(log.cx - log.tx, log.cy - log.ty);
+            maxDistance = Math.max(maxDistance, distance);
+        });
+        
+        // Scale factor to fit all clicks in visualization
+        const scale = maxDistance > 0 ? (vizSize * 0.4) / maxDistance : 1;
+        
+        // Draw each click
+        runState.logs.forEach((log, index) => {
+            // Calculate relative position (click relative to target center)
+            const relativeX = log.cx - log.tx;
+            const relativeY = log.cy - log.ty;
+            
+            // Scale to visualization coordinates
+            const vizX = centerX + (relativeX * scale);
+            const vizY = centerY + (relativeY * scale);
+            
+            // Draw target circle for this click
+            const targetCircle = document.createElement('div');
+            targetCircle.style.position = 'absolute';
+            targetCircle.style.left = (centerX - (log.r * scale)) + 'px';
+            targetCircle.style.top = (centerY - (log.r * scale)) + 'px';
+            targetCircle.style.width = (log.r * scale * 2) + 'px';
+            targetCircle.style.height = (log.r * scale * 2) + 'px';
+            targetCircle.style.border = log.hit ? '2px solid #10b981' : '2px solid #ef4444';
+            targetCircle.style.borderRadius = '50%';
+            targetCircle.style.backgroundColor = 'transparent';
+            targetCircle.style.opacity = '0.3';
+            shootingRange.appendChild(targetCircle);
+            
+            // Draw click marker
+            const clickMarker = document.createElement('div');
+            clickMarker.style.position = 'absolute';
+            clickMarker.style.left = (vizX - 12) + 'px';
+            clickMarker.style.top = (vizY - 12) + 'px';
+            clickMarker.style.width = '24px';
+            clickMarker.style.height = '24px';
+            clickMarker.style.backgroundColor = log.hit ? '#10b981' : '#ef4444';
+            clickMarker.style.border = '2px solid white';
+            clickMarker.style.borderRadius = '50%';
+            clickMarker.style.display = 'flex';
+            clickMarker.style.alignItems = 'center';
+            clickMarker.style.justifyContent = 'center';
+            clickMarker.style.color = 'white';
+            clickMarker.style.fontSize = '10px';
+            clickMarker.style.fontWeight = 'bold';
+            clickMarker.style.zIndex = '10';
+            clickMarker.textContent = (index + 1).toString();
+            clickMarker.title = `Click ${index + 1}: ${log.hit ? 'Hit' : 'Miss'} - Accuracy: ${log.hit ? formatPercentage(log.a) : 'N/A'}`;
+            shootingRange.appendChild(clickMarker);
+        });
+        
+        // Draw center crosshair
+        const crosshair = document.createElement('div');
+        crosshair.style.position = 'absolute';
+        crosshair.style.left = (centerX - 1) + 'px';
+        crosshair.style.top = '0px';
+        crosshair.style.width = '2px';
+        crosshair.style.height = vizSize + 'px';
+        crosshair.style.backgroundColor = '#374151';
+        crosshair.style.opacity = '0.3';
+        shootingRange.appendChild(crosshair);
+        
+        const crosshairH = document.createElement('div');
+        crosshairH.style.position = 'absolute';
+        crosshairH.style.left = '0px';
+        crosshairH.style.top = (centerY - 1) + 'px';
+        crosshairH.style.width = vizSize + 'px';
+        crosshairH.style.height = '2px';
+        crosshairH.style.backgroundColor = '#374151';
+        crosshairH.style.opacity = '0.3';
+        shootingRange.appendChild(crosshairH);
+    }
+    
+    // Update final stats modal
+    function updateFinalStats() {
+        finalHits.textContent = runState.hits;
+        finalAvgAccuracy.textContent = formatPercentage(runState.getAverageAccuracy());
+        finalBestAccuracy.textContent = formatPercentage(runState.bestAccuracy);
+        finalTargetSize.textContent = runState.finalRadius + 'px';
+        finalDuration.textContent = formatTime(runState.getDuration());
+    }
+    
+    // Show game over modal with shooting range
+    function showGameOverModal() {
+        liveStats.classList.add('hidden');
+        createShootingRangeVisualization();
+        updateFinalStats();
+        gameOverModal.classList.remove('hidden');
+        
+        console.log('Game Over Modal displayed with', runState.logs.length, 'clicks visualized');
     }
     
     // Click handling
@@ -382,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Target reached minimum size!');
                 stopTimer();
                 transitionToEnded(gameArea);
-                // Will need to show scorecard here (in later task)
+                showGameOverModal();
             } else {
                 // Move target to new position
                 updateTargetPosition(gameArea);
@@ -397,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             runState.recordMiss(clickLog);
             stopTimer();
             transitionToEnded(gameArea);
-            // Will need to show scorecard here (in later task)
+            showGameOverModal();
         }
     }
     
@@ -447,11 +615,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Remove target from game area
         removeTarget(gameArea);
         
-        // Hide scorecard and live stats
+        // Hide all modals and stats
+        gameOverModal.classList.add('hidden');
         scorecard.classList.add('hidden');
         liveStats.classList.add('hidden');
         
-        // Show modal
+        // Show start modal
         modal.style.display = 'flex';
         modal.style.opacity = '1';
         modal.style.pointerEvents = 'auto';
@@ -462,6 +631,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Game reset to idle state');
     }
     
+    // Share screenshot functionality
+    function handleShare() {
+        // Simple alert for now - could be enhanced with actual sharing
+        alert('Screenshot tip: Use your device\'s screenshot feature to capture this analysis!\n\nOn desktop: Ctrl+Shift+S (Windows) or Cmd+Shift+4 (Mac)\nOn mobile: Power + Volume Down');
+    }
+    
     // Add event listeners
     if (startBtn) {
         startBtn.addEventListener('click', handleStart);
@@ -469,6 +644,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (restartBtn) {
         restartBtn.addEventListener('click', handleRestart);
+    }
+    
+    if (restartModalBtn) {
+        restartModalBtn.addEventListener('click', handleRestart);
+    }
+    
+    if (shareBtn) {
+        shareBtn.addEventListener('click', handleShare);
     }
     
     // Instrumentation hook for external monitoring
