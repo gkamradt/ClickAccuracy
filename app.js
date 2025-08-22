@@ -40,6 +40,12 @@ class RunState {
         this.deltaR = 0;          // radius decrement per hit
         this.target = { x: 0, y: 0 };  // current target position
         this.logs = [];           // array of ClickEventLog instances
+        
+        // Running statistics
+        this.totalAccuracy = 0;   // sum of all hit accuracies
+        this.bestAccuracy = 0;    // best single-click accuracy
+        this.totalWeightedScore = 0; // cumulative weighted score
+        this.finalRadius = 0;     // radius at last successful hit
     }
     
     reset() {
@@ -52,6 +58,12 @@ class RunState {
         this.deltaR = 0;
         this.target = { x: 0, y: 0 };
         this.logs = [];
+        
+        // Reset statistics
+        this.totalAccuracy = 0;
+        this.bestAccuracy = 0;
+        this.totalWeightedScore = 0;
+        this.finalRadius = 0;
     }
     
     startGame(containerSize) {
@@ -63,6 +75,12 @@ class RunState {
         this.currentR = this.startR;
         this.deltaR = Math.max(1, Math.ceil(this.startR / CONFIG.SHRINK_STEPS_APPROX));
         this.logs = [];
+        
+        // Initialize statistics
+        this.totalAccuracy = 0;
+        this.bestAccuracy = 0;
+        this.totalWeightedScore = 0;
+        this.finalRadius = this.startR;
     }
     
     endGame() {
@@ -73,11 +91,30 @@ class RunState {
     recordHit(clickLog) {
         this.hits++;
         this.logs.push(clickLog);
+        
+        // Update running statistics
+        if (clickLog.a !== null) {
+            this.totalAccuracy += clickLog.a;
+            this.bestAccuracy = Math.max(this.bestAccuracy, clickLog.a);
+            this.finalRadius = clickLog.r;
+        }
+        if (clickLog.s !== null) {
+            this.totalWeightedScore += clickLog.s;
+        }
     }
     
     recordMiss(clickLog) {
         this.logs.push(clickLog);
         this.endGame();
+    }
+    
+    getAverageAccuracy() {
+        return this.hits > 0 ? this.totalAccuracy / this.hits : 0;
+    }
+    
+    getDuration() {
+        const end = this.endTs || Date.now();
+        return this.startTs ? end - this.startTs : 0;
     }
 }
 
@@ -207,8 +244,165 @@ document.addEventListener('DOMContentLoaded', () => {
     const liveStats = document.getElementById('live-stats');
     const scorecard = document.getElementById('scorecard');
     
+    // Get stat display elements
+    const statHits = document.getElementById('stat-hits');
+    const statAvgAccuracy = document.getElementById('stat-avg-accuracy');
+    const statBestAccuracy = document.getElementById('stat-best-accuracy');
+    const statCurrentSize = document.getElementById('stat-current-size');
+    const statElapsedTime = document.getElementById('stat-elapsed-time');
+    
+    // Timer interval reference
+    let timerInterval = null;
+    
     // Initial setup - disable game area until start is clicked
     gameArea.style.pointerEvents = 'none';
+    
+    // Update live statistics display
+    function updateLiveStats() {
+        if (runState.phase !== 'playing') return;
+        
+        // Update hit count
+        statHits.textContent = runState.hits;
+        
+        // Update average accuracy
+        const avgAccuracy = runState.getAverageAccuracy();
+        statAvgAccuracy.textContent = formatPercentage(avgAccuracy);
+        
+        // Update best accuracy
+        statBestAccuracy.textContent = formatPercentage(runState.bestAccuracy);
+        
+        // Update current size
+        statCurrentSize.textContent = runState.currentR + 'px';
+        
+        // Update elapsed time
+        const elapsed = runState.getDuration();
+        statElapsedTime.textContent = formatTime(elapsed);
+    }
+    
+    // Start timer for updating elapsed time
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (runState.phase === 'playing') {
+                const elapsed = runState.getDuration();
+                statElapsedTime.textContent = formatTime(elapsed);
+            }
+        }, 10); // Update every 10ms for centisecond precision
+    }
+    
+    // Stop timer
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+    
+    // Click handling
+    function handleGameClick(e) {
+        // Only process clicks during playing phase
+        if (runState.phase !== 'playing') {
+            return;
+        }
+        
+        // Get click coordinates relative to game area
+        const coords = relCoords(e, gameArea);
+        const cx = coords.cx;
+        const cy = coords.cy;
+        
+        // Calculate distance from target center
+        const tx = runState.target.x;
+        const ty = runState.target.y;
+        const distance = calculateDistance(cx, cy, tx, ty);
+        
+        // Determine if it's a hit (d <= r, including exact edge)
+        const isHit = distance <= runState.currentR;
+        
+        // Calculate metrics
+        const elapsedMs = Date.now() - runState.startTs;
+        let accuracy = null;
+        let weightValue = null;
+        let score = null;
+        
+        if (isHit) {
+            accuracy = accuracyUnweighted(distance, runState.currentR);
+            weightValue = weight(runState.startR, runState.currentR, CONFIG.WEIGHT_K);
+            score = accuracy * weightValue;
+        }
+        
+        // Create click event log
+        const clickLog = new ClickEventLog(
+            elapsedMs,
+            cx,
+            cy,
+            tx,
+            ty,
+            runState.currentR,
+            distance,
+            isHit,
+            accuracy,
+            weightValue,
+            score
+        );
+        
+        // Instrumentation hook
+        if (window.CA_EVENTS) {
+            window.CA_EVENTS.push({
+                type: isHit ? 'hit' : 'miss',
+                payload: {
+                    accuracy: accuracy,
+                    radius: runState.currentR,
+                    time: elapsedMs
+                }
+            });
+        }
+        
+        // Handle hit or miss
+        if (isHit) {
+            // Record hit (updates statistics)
+            runState.recordHit(clickLog);
+            
+            console.log('Hit!', {
+                accuracy: (accuracy * 100).toFixed(1) + '%',
+                distance: distance.toFixed(2),
+                radius: runState.currentR,
+                avgAccuracy: (runState.getAverageAccuracy() * 100).toFixed(1) + '%',
+                bestAccuracy: (runState.bestAccuracy * 100).toFixed(1) + '%',
+                totalScore: runState.totalWeightedScore.toFixed(2)
+            });
+            
+            // Shrink radius
+            runState.currentR = nextRadius(runState.currentR, runState.deltaR);
+            
+            // Update live stats display
+            updateLiveStats();
+            
+            // Check if radius reached minimum
+            if (runState.currentR <= CONFIG.MIN_RADIUS_PX) {
+                console.log('Target reached minimum size!');
+                stopTimer();
+                transitionToEnded(gameArea);
+                // Will need to show scorecard here (in later task)
+            } else {
+                // Move target to new position
+                updateTargetPosition(gameArea);
+            }
+        } else {
+            console.log('Miss!', {
+                distance: distance.toFixed(2),
+                radius: runState.currentR
+            });
+            
+            // Record miss and end game
+            runState.recordMiss(clickLog);
+            stopTimer();
+            transitionToEnded(gameArea);
+            // Will need to show scorecard here (in later task)
+        }
+    }
+    
+    // Add click listener to game area
+    gameArea.addEventListener('click', handleGameClick);
     
     // State transition handlers
     function handleStart() {
@@ -226,6 +420,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show live stats
         liveStats.classList.remove('hidden');
         
+        // Initialize stats display
+        updateLiveStats();
+        
+        // Start the timer
+        startTimer();
+        
         // Enable game area interactions
         gameArea.style.pointerEvents = 'auto';
         
@@ -240,6 +440,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleRestart() {
         // Reset state
         transitionToIdle();
+        
+        // Stop timer
+        stopTimer();
         
         // Remove target from game area
         removeTarget(gameArea);
