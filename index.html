@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Accuracy Test</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom styles for game container -->
+    <style>
+        /* Game container responsive sizing */
+        .game-container {
+            width: min(600px, 80vw, 80vh);
+            height: min(600px, 80vw, 80vh);
+        }
+        
+        /* Target circle will be positioned absolutely within the game area */
+        .target-circle {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+    <!-- Header -->
+    <header class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Click Accuracy Test</h1>
+    </header>
+    
+    <!-- Main Game Container -->
+    <main class="flex flex-col items-center">
+        <!-- Game Area (Square) -->
+        <div id="game-area" class="game-container relative bg-white border-2 border-gray-300 rounded-lg shadow-lg">
+            <!-- Target circle will be rendered here dynamically -->
+            <!-- Modal overlay will be rendered here when needed -->
+        </div>
+        
+        <!-- Stats Display Area -->
+        <div id="stats-container" class="mt-8 w-full max-w-md">
+            <!-- Live stats during game -->
+            <div id="live-stats" class="hidden grid grid-cols-2 gap-4 text-center">
+                <div class="bg-white p-3 rounded-lg shadow">
+                    <div class="text-sm text-gray-600">Hits</div>
+                    <div id="stat-hits" class="text-2xl font-bold text-gray-800">0</div>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow">
+                    <div class="text-sm text-gray-600">Avg Accuracy</div>
+                    <div id="stat-avg-accuracy" class="text-2xl font-bold text-gray-800">0.0%</div>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow">
+                    <div class="text-sm text-gray-600">Best Accuracy</div>
+                    <div id="stat-best-accuracy" class="text-2xl font-bold text-gray-800">0.0%</div>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow">
+                    <div class="text-sm text-gray-600">Current Size</div>
+                    <div id="stat-current-size" class="text-2xl font-bold text-gray-800">0px</div>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow col-span-2">
+                    <div class="text-sm text-gray-600">Elapsed Time</div>
+                    <div id="stat-elapsed-time" class="text-2xl font-bold text-gray-800">00:00.00</div>
+                </div>
+            </div>
+            
+            <!-- End game scorecard -->
+            <div id="scorecard" class="hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Game Over!</h2>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Hits:</span>
+                        <span id="score-hits" class="font-bold text-gray-800">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Average Accuracy:</span>
+                        <span id="score-avg-accuracy" class="font-bold text-gray-800">0.0%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Best Accuracy:</span>
+                        <span id="score-best-accuracy" class="font-bold text-gray-800">0.0%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Final Target Size:</span>
+                        <span id="score-final-size" class="font-bold text-gray-800">0px</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Duration:</span>
+                        <span id="score-duration" class="font-bold text-gray-800">00:00.00</span>
+                    </div>
+                </div>
+                <button id="restart-btn" class="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    Restart
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Instructions Modal (Initially visible) -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md mx-4">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Play</h2>
+            <div class="space-y-3 mb-6">
+                <p class="text-gray-600">Click inside the circle. After each hit, the circle shrinks and moves.</p>
+                <p class="text-gray-600 font-semibold">One miss ends the run.</p>
+                <p class="text-sm text-gray-500 italic">Note: Partial off-edge placement is intentional.</p>
+            </div>
+            <button id="start-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                Start
+            </button>
+        </div>
+    </div>
+    
+    <!-- Game script will be loaded here -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
