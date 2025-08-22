@@ -370,15 +370,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const centerX = vizSize / 2;
         const centerY = vizSize / 2;
         
-        // Find the maximum distance to scale properly
-        let maxDistance = 0;
+        // Find the maximum extent we need to show (either click distance or target radius)
+        let maxExtent = 0;
         runState.logs.forEach(log => {
-            const distance = Math.hypot(log.cx - log.tx, log.cy - log.ty);
-            maxDistance = Math.max(maxDistance, distance);
+            const clickDistance = Math.hypot(log.cx - log.tx, log.cy - log.ty);
+            const targetRadius = log.r;
+            // Consider both how far the click is from center AND the target radius
+            maxExtent = Math.max(maxExtent, clickDistance + targetRadius, targetRadius);
         });
         
-        // Scale factor to fit all clicks in visualization
-        const scale = maxDistance > 0 ? (vizSize * 0.4) / maxDistance : 1;
+        // Scale factor to fit everything in visualization (with some padding)
+        const scale = maxExtent > 0 ? (vizSize * 0.35) / maxExtent : 1;
         
         // Draw each click
         runState.logs.forEach((log, index) => {
