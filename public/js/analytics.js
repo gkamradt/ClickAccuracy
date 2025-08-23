@@ -248,26 +248,26 @@ function updateMainStatistics(modal, performanceScore, speedScore, scoring, runS
                     <div class="text-xs text-blue-500">Timing & Efficiency</div>
                 </div>
             </div>
-            <div class="grid grid-cols-5 gap-1">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-1">
                 <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Total Hits</div>
-                    <div class="text-sm font-semibold text-gray-700">${runState.hits}</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-700">${runState.hits}</div>
                 </div>
                 <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Avg Accuracy</div>
-                    <div class="text-sm font-semibold text-gray-700">${formatPercentage(runState.getAverageAccuracy())}</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-700">${formatPercentage(runState.getAverageAccuracy())}</div>
                 </div>
                 <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Best Accuracy</div>
-                    <div class="text-sm font-semibold text-gray-700">${formatPercentage(runState.bestAccuracy)}</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-700">${formatPercentage(runState.bestAccuracy)}</div>
                 </div>
                 <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Final Size</div>
-                    <div class="text-sm font-semibold text-gray-700">${runState.finalRadius}px</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-700">${runState.finalRadius}px</div>
                 </div>
                 <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Duration</div>
-                    <div class="text-sm font-semibold text-gray-700">${formatTime(runState.getDuration())}</div>
+                    <div class="text-xs sm:text-sm font-semibold text-gray-700">${formatTime(runState.getDuration())}</div>
                 </div>
             </div>
         </div>
@@ -302,18 +302,18 @@ function addUsernameSection(modal) {
     // Update username section content
     usernameSection.innerHTML = `
         <div class="bg-gray-50 p-2 rounded border border-gray-200">
-            <div class="flex items-center space-x-2">
-                <label class="text-sm font-medium text-gray-700 whitespace-nowrap">Anon, save your name to get on the leaderboard:</label>
-                <input 
-                    type="text" 
+            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+                <label class="text-xs sm:text-sm font-medium text-gray-700">Anon, save your name to get on the leaderboard:</label>
+                <input
+                    type="text"
                     id="username-input"
-                    placeholder="Enter your name..." 
+                    placeholder="Enter your name..."
                     maxlength="20"
-                    class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm w-full sm:w-auto focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 />
-                <button 
+                <button
                     id="save-username-btn"
-                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors whitespace-nowrap"
+                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors w-full sm:w-auto"
                 >
                     Save
                 </button>
@@ -509,7 +509,7 @@ async function createScatterPlotVisualization(modal, speedScore, performanceScor
         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h3 class="text-base font-bold text-gray-800 mb-2 text-center">Performance vs. All Players</h3>
             <div class="flex justify-center">
-                <svg id="modal-scatter-plot" width="600" height="250" class="bg-white border border-gray-300 rounded-lg">
+                <svg id="modal-scatter-plot" class="bg-white border border-gray-300 rounded-lg w-full max-w-[600px]" viewBox="0 0 600 250">
                     <!-- Chart content will be rendered here -->
                 </svg>
             </div>
@@ -589,13 +589,17 @@ function renderModalScatterPlot(data) {
     
     // Chart configuration
     const config = {
-        width: 600,
+        width: Math.min(600, window.innerWidth - 80),
         height: 250,
         margin: { top: 15, right: 20, bottom: 55, left: 65 },
         maxSpeed: 100,
         maxPerformance: 100
     };
-    
+
+    svg.setAttribute('width', String(config.width));
+    svg.setAttribute('height', String(config.height));
+    svg.setAttribute('viewBox', `0 0 ${config.width} ${config.height}`);
+
     const chartWidth = config.width - config.margin.left - config.margin.right;
     const chartHeight = config.height - config.margin.top - config.margin.bottom;
     
