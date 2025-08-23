@@ -90,20 +90,18 @@ function populateLeaderboard(players) {
     })).sort((a, b) => b.combined_score - a.combined_score);
     
     playersWithCombinedScore.forEach((player, index) => {
-        const row = createPlayerRow(player, index + 1, 'leaderboard');
+        const row = createPlayerRow(player, index + 1);
         hallOfFameTable.appendChild(row);
     });
 }
 
 // Create a table row for a player
-function createPlayerRow(player, rank, tableType) {
+function createPlayerRow(player, rank) {
     const row = document.createElement('tr');
     row.className = 'table-row transition-colors duration-150';
-    
-    // Format date/time based on table type
-    const dateTime = tableType === 'hall-of-fame' 
-        ? formatDate(player.created_at)
-        : formatTime(player.created_at);
+
+    // Format date/time for leaderboard
+    const dateTime = formatRelativeOrDate(player.created_at);
     
     // Create rank badge
     const rankBadge = getRankBadge(rank);
@@ -162,32 +160,44 @@ function formatScore(score) {
     return Number(score).toFixed(1);
 }
 
+// Format leaderboard date: relative time if within 7 days, otherwise full date
+function formatRelativeOrDate(dateString) {
+    if (!dateString) return '-';
+
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffDays < 7) {
+            if (diffMins < 1) return 'Just now';
+            if (diffMins === 1) return '1 minute ago';
+            if (diffMins < 60) return `${diffMins} minutes ago`;
+            if (diffHours === 1) return '1 hour ago';
+            if (diffHours < 24) return `${diffHours} hours ago`;
+            if (diffDays === 1) return '1 day ago';
+            return `${diffDays} days ago`;
+        }
+
+        return formatDate(dateString);
+    } catch (error) {
+        return '-';
+    }
+}
+
 // Format date for hall of fame (e.g., "Jan 15, 2024")
 function formatDate(dateString) {
     if (!dateString) return '-';
-    
+
     try {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
-        });
-    } catch (error) {
-        return '-';
-    }
-}
-
-// Format time for today's best (e.g., "2:34 PM")
-function formatTime(dateString) {
-    if (!dateString) return '-';
-    
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
         });
     } catch (error) {
         return '-';
