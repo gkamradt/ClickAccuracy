@@ -64,6 +64,11 @@ export async function initializeDatabase() {
 // Insert a new run record
 export async function insertRun(run: Omit<RunRecord, 'id' | 'created_at'>): Promise<number> {
   try {
+    // Convert badges array to PostgreSQL array format
+    const badgesArray = run.badges.length > 0 
+      ? `{${run.badges.map(badge => `"${badge.replace(/"/g, '\\"')}"`).join(',')}}`
+      : '{}';
+    
     const result = await sql`
       INSERT INTO runs (
         username, speed_score, performance_score, total_hits, 
@@ -81,7 +86,7 @@ export async function insertRun(run: Omit<RunRecord, 'id' | 'created_at'>): Prom
         ${run.duration_ms},
         ${run.avg_time_per_hit_ms},
         ${JSON.stringify(run.click_logs)},
-        ${run.badges},
+        ${badgesArray},
         ${run.is_ai},
         ${run.ai_model || null},
         ${run.ip_hash || null},
