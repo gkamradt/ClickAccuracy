@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: false, // Using pages directory for compatibility
+    // appDir removed as it's deprecated in Next.js 14+
   },
   async rewrites() {
     return [
