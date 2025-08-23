@@ -13,7 +13,7 @@ import {
 } from './game-logic.js';
 import { renderTarget, removeTarget, updateLiveStats, startTimer, stopTimer } from './renderer.js';
 import { createGameConfetti, createFloatingAccuracy } from './animations.js';
-import { showGameOverModal, handleShare } from './analytics.js';
+import { showGameOverModal, handleShare, preloadLeaderboardData } from './analytics.js';
 
 // State Transition Functions
 export function transitionToPlaying(gameArea, runState) {
@@ -182,6 +182,11 @@ export function createStartHandler(gameArea, runState, modal, liveStats, statEle
         
         // Enable game area interactions
         gameArea.style.pointerEvents = 'auto';
+        
+        // Preload leaderboard data in background for faster modal display
+        preloadLeaderboardData().catch(error => {
+            console.warn('Background leaderboard preload failed:', error);
+        });
         
         console.log('Game started:', {
             phase: runState.phase,

@@ -81,7 +81,7 @@ export async function insertRun(run: Omit<RunRecord, 'id' | 'created_at'>): Prom
         ${run.duration_ms},
         ${run.avg_time_per_hit_ms},
         ${JSON.stringify(run.click_logs)},
-        ${JSON.stringify(run.badges)},
+        ${run.badges},
         ${run.is_ai},
         ${run.ai_model || null},
         ${run.ip_hash || null},

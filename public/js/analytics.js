@@ -5,6 +5,13 @@ import { formatPercentage, formatTime } from './game-logic.js';
 // Import scoring utilities (will be loaded as ES modules in the browser)
 let scoringUtils = null;
 
+// Leaderboard data cache
+let leaderboardDataCache = {
+    data: null,
+    timestamp: 0,
+    isLoading: false
+};
+
 // Dynamic import for scoring utilities - now uses centralized API endpoint
 async function loadScoringUtils() {
     if (!scoringUtils) {
@@ -147,13 +154,13 @@ export async function showGameOverModal(runState, liveStats, gameOverModal, shoo
     const speedScore = scoring.calculateSpeedScore(runState.getDuration(), runState.hits);
     const performanceScore = scoring.calculatePerformanceScore(runState.getAverageAccuracy(), runState.hits);
     
-    // Update main final statistics at the top (Performance Score and Speed Score)
+    // Update main final statistics  
     updateMainStatistics(gameOverModal, performanceScore, speedScore, scoring, runState);
     
     // Create scatter plot below main stats
     await createScatterPlotVisualization(gameOverModal, speedScore, performanceScore);
     
-    // Add username input section
+    // Add username input section above buttons (at the bottom)
     addUsernameSection(gameOverModal);
     
     // Then create shooting range visualization at bottom
@@ -173,6 +180,40 @@ export async function showGameOverModal(runState, liveStats, gameOverModal, shoo
     console.log('Enhanced Scores - Speed:', speedScore, 'Performance:', performanceScore);
 }
 
+// Preload leaderboard data in background (call when game starts)
+export async function preloadLeaderboardData() {
+    // Don't reload if data is fresh (less than 2 minutes old) or currently loading
+    const now = Date.now();
+    const cacheAge = now - leaderboardDataCache.timestamp;
+    const cacheMaxAge = 2 * 60 * 1000; // 2 minutes
+    
+    if (leaderboardDataCache.isLoading || (leaderboardDataCache.data && cacheAge < cacheMaxAge)) {
+        console.log('🏆 Leaderboard data already fresh or loading');
+        return;
+    }
+    
+    console.log('🔄 Preloading leaderboard data in background...');
+    leaderboardDataCache.isLoading = true;
+    
+    try {
+        const response = await fetch('/api/leaderboard');
+        if (response.ok) {
+            leaderboardDataCache.data = await response.json();
+            leaderboardDataCache.timestamp = now;
+            console.log('✅ Leaderboard data preloaded successfully:', {
+                hallOfFameCount: leaderboardDataCache.data.hall_of_fame?.length || 0,
+                scatterPointsCount: leaderboardDataCache.data.scatter_data?.length || 0
+            });
+        } else {
+            console.warn('⚠️ Failed to preload leaderboard data:', response.status);
+        }
+    } catch (error) {
+        console.error('❌ Error preloading leaderboard data:', error);
+    } finally {
+        leaderboardDataCache.isLoading = false;
+    }
+}
+
 // Update main statistics at the top of modal (data dense)
 function updateMainStatistics(modal, performanceScore, speedScore, scoring, runState) {
     // Find the existing stats summary section
@@ -182,7 +223,7 @@ function updateMainStatistics(modal, performanceScore, speedScore, scoring, runS
         // Create main stats section and insert at the top
         mainStatsSection = document.createElement('div');
         mainStatsSection.id = 'main-stats-section';
-        mainStatsSection.className = 'mb-4';
+        mainStatsSection.className = 'mb-3';
         
         // Insert after the title
         const title = modal.querySelector('h2');
@@ -194,37 +235,37 @@ function updateMainStatistics(modal, performanceScore, speedScore, scoring, runS
     // Update main statistics content (Performance Score first, then Speed Score)
     mainStatsSection.innerHTML = `
         <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <h3 class="text-lg font-bold text-blue-800 mb-2 text-center">Your Performance</h3>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div class="bg-white p-3 rounded-lg shadow-sm border border-blue-100 text-center">
+            <h3 class="text-base font-bold text-blue-800 mb-2 text-center">Your Performance</h3>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <div class="bg-white p-2 rounded-lg shadow-sm border border-blue-100 text-center">
                     <div class="text-xs text-blue-600 font-medium mb-1">Performance Score</div>
-                    <div class="text-2xl font-bold text-blue-800 mb-1">${scoring.formatScore(performanceScore)}</div>
+                    <div class="text-xl font-bold text-blue-800 mb-1">${scoring.formatScore(performanceScore)}</div>
                     <div class="text-xs text-blue-500">Accuracy & Consistency</div>
                 </div>
-                <div class="bg-white p-3 rounded-lg shadow-sm border border-blue-100 text-center">
+                <div class="bg-white p-2 rounded-lg shadow-sm border border-blue-100 text-center">
                     <div class="text-xs text-blue-600 font-medium mb-1">Speed Score</div>
-                    <div class="text-2xl font-bold text-blue-800 mb-1">${scoring.formatScore(speedScore)}</div>
+                    <div class="text-xl font-bold text-blue-800 mb-1">${scoring.formatScore(speedScore)}</div>
                     <div class="text-xs text-blue-500">Timing & Efficiency</div>
                 </div>
             </div>
-            <div class="grid grid-cols-5 gap-2">
-                <div class="bg-white p-2 rounded shadow-sm text-center">
+            <div class="grid grid-cols-5 gap-1">
+                <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Total Hits</div>
                     <div class="text-sm font-semibold text-gray-700">${runState.hits}</div>
                 </div>
-                <div class="bg-white p-2 rounded shadow-sm text-center">
+                <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Avg Accuracy</div>
                     <div class="text-sm font-semibold text-gray-700">${formatPercentage(runState.getAverageAccuracy())}</div>
                 </div>
-                <div class="bg-white p-2 rounded shadow-sm text-center">
+                <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Best Accuracy</div>
                     <div class="text-sm font-semibold text-gray-700">${formatPercentage(runState.bestAccuracy)}</div>
                 </div>
-                <div class="bg-white p-2 rounded shadow-sm text-center">
+                <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Final Size</div>
                     <div class="text-sm font-semibold text-gray-700">${runState.finalRadius}px</div>
                 </div>
-                <div class="bg-white p-2 rounded shadow-sm text-center">
+                <div class="bg-white p-1.5 rounded shadow-sm text-center">
                     <div class="text-xs text-gray-500">Duration</div>
                     <div class="text-sm font-semibold text-gray-700">${formatTime(runState.getDuration())}</div>
                 </div>
@@ -243,37 +284,41 @@ function addUsernameSection(modal) {
         // Create username section
         usernameSection = document.createElement('div');
         usernameSection.id = 'username-section';
-        usernameSection.className = 'mb-6';
+        usernameSection.className = 'mb-3';
         
-        // Insert after scatter plot section
+        // Insert after the scatter plot section
         const scatterSection = modal.querySelector('#scatter-plot-section');
         if (scatterSection) {
             scatterSection.parentNode.insertBefore(usernameSection, scatterSection.nextSibling);
+        } else {
+            // Fallback: insert before action buttons
+            const actionButtons = modal.querySelector('.flex.justify-center');
+            if (actionButtons) {
+                actionButtons.parentNode.insertBefore(usernameSection, actionButtons);
+            }
         }
     }
     
     // Update username section content
     usernameSection.innerHTML = `
-        <div class="bg-white p-4 rounded-lg border border-gray-300">
-            <div class="flex flex-col space-y-2">
-                <label class="text-sm font-medium text-gray-700">Add your name to the leaderboard (optional):</label>
-                <div class="flex space-x-2">
-                    <input 
-                        type="text" 
-                        id="username-input"
-                        placeholder="Enter your name..." 
-                        maxlength="20"
-                        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <button 
-                        id="save-username-btn"
-                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        Save
-                    </button>
-                </div>
-                <div id="username-status" class="text-xs text-gray-500"></div>
+        <div class="bg-gray-50 p-2 rounded border border-gray-200">
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700 whitespace-nowrap">Anon, save your name to get on the leaderboard:</label>
+                <input 
+                    type="text" 
+                    id="username-input"
+                    placeholder="Enter your name..." 
+                    maxlength="20"
+                    class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button 
+                    id="save-username-btn"
+                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors whitespace-nowrap"
+                >
+                    Save
+                </button>
             </div>
+            <div id="username-status" class="text-xs text-gray-500 mt-1 hidden"></div>
         </div>
     `;
 }
@@ -372,8 +417,8 @@ function setupUsernameInput(runId) {
     }
     
     // Set initial status
-    statusDiv.textContent = 'Your score has been saved anonymously. Add your name to appear on the leaderboard!';
-    statusDiv.className = 'text-xs text-gray-500';
+    // statusDiv.textContent = 'Your score has been saved anonymously. Add your name to appear on the leaderboard!';
+    // statusDiv.className = 'text-xs text-gray-500';
     
     // Handle save button click
     saveButton.addEventListener('click', async () => {
@@ -444,7 +489,7 @@ async function createScatterPlotVisualization(modal, speedScore, performanceScor
         // Create scatter plot section and insert after main stats
         scatterSection = document.createElement('div');
         scatterSection.id = 'scatter-plot-section';
-        scatterSection.className = 'mb-8';
+        scatterSection.className = 'mb-4';
         
         // Insert after main stats section
         const mainStatsSection = modal.querySelector('#main-stats-section');
@@ -461,50 +506,42 @@ async function createScatterPlotVisualization(modal, speedScore, performanceScor
     
     // Set up scatter plot HTML structure
     scatterSection.innerHTML = `
-        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h3 class="text-lg font-bold text-gray-800 mb-4 text-center">Performance vs. All Players</h3>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 class="text-base font-bold text-gray-800 mb-2 text-center">Performance vs. All Players</h3>
             <div class="flex justify-center">
-                <svg id="modal-scatter-plot" width="600" height="400" class="bg-white border border-gray-300 rounded-lg">
+                <svg id="modal-scatter-plot" width="600" height="250" class="bg-white border border-gray-300 rounded-lg">
                     <!-- Chart content will be rendered here -->
                 </svg>
             </div>
         </div>
     `;
     
-    // Fetch leaderboard data
-    console.log('🔄 Fetching leaderboard data for scatter plot...');
-    console.log('🌍 Leaderboard API URL:', window.location.origin + '/api/leaderboard');
+    // Use cached leaderboard data or fallback to fresh fetch
     let leaderboardData;
-    try {
-        const response = await fetch('/api/leaderboard');
-        console.log('📡 Leaderboard API response:', {
-            status: response.status,
-            ok: response.ok,
-            headers: Object.fromEntries(response.headers.entries())
-        });
-        
-        if (response.ok) {
-            leaderboardData = await response.json();
-            console.log('✅ Leaderboard data received:', {
-                hallOfFameCount: leaderboardData.hall_of_fame?.length || 0,
-                todaysBestCount: leaderboardData.todays_best?.length || 0,
-                scatterPointsCount: leaderboardData.scatter_data?.length || 0,
-                aiBenchmarksCount: leaderboardData.ai_benchmarks?.length || 0
-            });
-        } else {
-            const errorText = await response.text();
-            console.error('❌ Leaderboard API error response:', errorText);
-            throw new Error(`API returned ${response.status}: ${errorText}`);
+    
+    if (leaderboardDataCache.data) {
+        console.log('🚀 Using cached leaderboard data for scatter plot');
+        leaderboardData = leaderboardDataCache.data;
+    } else {
+        console.log('🔄 No cached data, fetching leaderboard data...');
+        try {
+            const response = await fetch('/api/leaderboard');
+            if (response.ok) {
+                leaderboardData = await response.json();
+                // Cache this data for future use
+                leaderboardDataCache.data = leaderboardData;
+                leaderboardDataCache.timestamp = Date.now();
+                console.log('✅ Leaderboard data fetched and cached:', {
+                    scatterPointsCount: leaderboardData.scatter_data?.length || 0
+                });
+            } else {
+                throw new Error(`API returned ${response.status}`);
+            }
+        } catch (error) {
+            console.error('❌ Failed to fetch leaderboard data:', error);
+            // Use empty data for now
+            leaderboardData = { scatter_data: [] };
         }
-    } catch (error) {
-        console.error('❌ Failed to fetch leaderboard data:', error);
-        console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-        });
-        // Use empty data for now
-        leaderboardData = { scatter_data: [] };
     }
     
     // Process the data and add current player's score
@@ -553,8 +590,8 @@ function renderModalScatterPlot(data) {
     // Chart configuration
     const config = {
         width: 600,
-        height: 400,
-        margin: { top: 20, right: 20, bottom: 60, left: 60 },
+        height: 250,
+        margin: { top: 15, right: 20, bottom: 55, left: 65 },
         maxSpeed: 100,
         maxPerformance: 100
     };

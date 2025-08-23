@@ -1,13 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // appDir removed as it's deprecated in Next.js 14+
-  },
+  trailingSlash: true,
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: '/api/:path*',
+        source: '/',
+        destination: '/index.html',
       },
     ];
   },
