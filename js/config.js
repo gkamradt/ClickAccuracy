@@ -21,7 +21,7 @@ export const DEMO_CONFIG = {
     // Timing
     totalDuration: 6,        // Total animation duration in seconds
     moveSpeed: 0.8,          // Speed of mouse movement (faster bursts)
-    pauseAtTarget: 0.3,      // Pause when reaching target
+    pauseAtTarget: 0.15,     // Pause when reaching target
     clickDuration: 0.2,      // Duration of click animation
     rippleDuration: 0.8,     // Duration of ripple effect
     pauseBetweenClicks: 0.4, // Pause at each target

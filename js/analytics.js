@@ -322,6 +322,13 @@ async function submitGameData(runState, speedScore, performanceScore) {
         
         // Submit to API (works in both dev and production)
         const apiUrl = '/api/runs';
+        console.log('🚀 Making API call to:', window.location.origin + apiUrl);
+        console.log('🌍 Environment check:', {
+            hostname: window.location.hostname,
+            origin: window.location.origin,
+            isProduction: window.location.hostname !== 'localhost'
+        });
+        
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -466,16 +473,36 @@ async function createScatterPlotVisualization(modal, speedScore, performanceScor
     
     // Fetch leaderboard data
     console.log('🔄 Fetching leaderboard data for scatter plot...');
+    console.log('🌍 Leaderboard API URL:', window.location.origin + '/api/leaderboard');
     let leaderboardData;
     try {
         const response = await fetch('/api/leaderboard');
+        console.log('📡 Leaderboard API response:', {
+            status: response.status,
+            ok: response.ok,
+            headers: Object.fromEntries(response.headers.entries())
+        });
+        
         if (response.ok) {
             leaderboardData = await response.json();
+            console.log('✅ Leaderboard data received:', {
+                hallOfFameCount: leaderboardData.hall_of_fame?.length || 0,
+                todaysBestCount: leaderboardData.todays_best?.length || 0,
+                scatterPointsCount: leaderboardData.scatter_data?.length || 0,
+                aiBenchmarksCount: leaderboardData.ai_benchmarks?.length || 0
+            });
         } else {
-            throw new Error(`API returned ${response.status}`);
+            const errorText = await response.text();
+            console.error('❌ Leaderboard API error response:', errorText);
+            throw new Error(`API returned ${response.status}: ${errorText}`);
         }
     } catch (error) {
         console.error('❌ Failed to fetch leaderboard data:', error);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
         // Use empty data for now
         leaderboardData = { scatter_data: [] };
     }
