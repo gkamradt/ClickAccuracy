@@ -31,8 +31,12 @@ export const DEMO_CONFIG = {
     startY: 60,              // Vertical center
     circle1X: 50,            // Center of first circle (20px + 30px radius)
     circle1Y: 60,            // Center of first circle (30px + 30px radius)
+    circle1ClickX: 67,       // Off-center click position (bad accuracy)
+    circle1ClickY: 30,       // Off-center click position (bad accuracy)
     circle2X: 150,           // Center of second circle (120px + 30px radius)
     circle2Y: 60,            // Center of second circle (30px + 30px radius)
+    circle2ClickX: 160,      // Perfect center click (good accuracy)
+    circle2ClickY: 60,       // Perfect center click (good accuracy)
     endX: 220,               // End position (off-screen right)
     
     // Effects

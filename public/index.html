@@ -43,6 +43,58 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
+        .demo-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        
+        .demo-crosshair::before,
+        .demo-crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1px;
+        }
+        
+        .demo-crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+        }
+        
+        .demo-crosshair::after {
+            width: 20px;
+            height: 2px;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .demo-feedback {
+            position: absolute;
+            pointer-events: none;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            opacity: 0;
+        }
+        
+        .demo-feedback.bad {
+            color: #ef4444;
+        }
+        
+        .demo-feedback.good {
+            color: #10b981;
+        }
+        
         .demo-cursor {
             position: absolute;
             transform: translate(-50%, -100%);
@@ -163,15 +215,28 @@
     <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-8 rounded-lg shadow-xl max-w-md mx-4">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">How to Play</h2>
+            <p class="text-center">Click circle centers.</p>
             
             <!-- Animated Demo -->
             <div class="flex justify-center mb-6">
                 <div class="demo-container">
-                    <!-- First circle (left) -->
-                    <div id="demo-circle-1" class="demo-circle" style="left: 20px; top: 30px;"></div>
+                    <!-- First circle (left) with crosshair -->
+                    <div id="demo-circle-1" class="demo-circle" style="left: 20px; top: 30px;">
+                        <div class="demo-crosshair"></div>
+                    </div>
                     
-                    <!-- Second circle (right) -->
-                    <div id="demo-circle-2" class="demo-circle" style="left: 120px; top: 30px;"></div>
+                    <!-- Second circle (right) with crosshair -->
+                    <div id="demo-circle-2" class="demo-circle" style="left: 120px; top: 30px;">
+                        <div class="demo-crosshair"></div>
+                    </div>
+                    
+                    <!-- Feedback elements -->
+                    <div id="demo-feedback-1" class="demo-feedback bad" style="left: 10px; top: 15px;">
+                        ✗ Bad
+                    </div>
+                    <div id="demo-feedback-2" class="demo-feedback good" style="left: 110px; top: 15px;">
+                        ✓ Good
+                    </div>
                     
                     <!-- Click ripple effect container -->
                     <div id="demo-ripple-container" class="absolute inset-0 pointer-events-none"></div>
@@ -186,9 +251,8 @@
             </div>
             
             <div class="space-y-3 mb-6">
-                <p class="text-gray-600">Click inside the circle. After each hit, the circle shrinks and moves.</p>
-                <p class="text-gray-600 font-semibold">One miss ends the run.</p>
-                <p class="text-sm text-gray-500 italic">Note: Partial off-edge placement is intentional.</p>
+                <p class="text-gray-600 text-center">Circles shrink, move quick.</p>
+                <p class="text-gray-600 font-semibold text-center">One miss ends the run.</p>
             </div>
             <div class="space-y-3">
                 <button id="start-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">

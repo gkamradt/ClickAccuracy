@@ -9,8 +9,10 @@ export function setupDemoAnimation() {
     const demoRippleContainer = document.getElementById('demo-ripple-container');
     const circle1 = document.getElementById('demo-circle-1');
     const circle2 = document.getElementById('demo-circle-2');
+    const feedback1 = document.getElementById('demo-feedback-1');
+    const feedback2 = document.getElementById('demo-feedback-2');
     
-    if (!demoCursor || !demoRippleContainer || !circle1 || !circle2) return;
+    if (!demoCursor || !demoRippleContainer || !circle1 || !circle2 || !feedback1 || !feedback2) return;
     
     function createRipple(x, y) {
         const ripple = document.createElement('div');
@@ -82,10 +84,29 @@ export function setupDemoAnimation() {
     }
     
     function resetCircles() {
-        // Reset both circles for next animation cycle
+        // Reset both circles and hide feedback for next animation cycle
         gsap.set([circle1, circle2], { 
             scale: 1, 
             opacity: 1 
+        });
+        gsap.set([feedback1, feedback2], {
+            opacity: 0
+        });
+    }
+    
+    function showFeedback(feedbackElement, delay = 0) {
+        gsap.to(feedbackElement, {
+            opacity: 1,
+            duration: 0.3,
+            delay: delay,
+            ease: "power2.out"
+        });
+        
+        gsap.to(feedbackElement, {
+            opacity: 0,
+            duration: 0.5,
+            delay: delay + 1.5,
+            ease: "power2.in"
         });
     }
     
@@ -99,10 +120,10 @@ export function setupDemoAnimation() {
         // Add a reset at the very beginning of the timeline (this will repeat)
         tl.call(resetCircles)
         
-        // Move to first circle (quick burst then stop)
-        tl.to(demoCursor, {
-            x: DEMO_CONFIG.circle1X,
-            y: DEMO_CONFIG.circle1Y,
+        // Move to first circle (off-center position)
+        .to(demoCursor, {
+            x: DEMO_CONFIG.circle1ClickX,
+            y: DEMO_CONFIG.circle1ClickY,
             duration: DEMO_CONFIG.moveSpeed,
             ease: "power3.out" // Quick start, slow stop (more realistic)
         })
@@ -110,14 +131,15 @@ export function setupDemoAnimation() {
         // Pause at target (like thinking/aiming)
         .to({}, { duration: DEMO_CONFIG.pauseAtTarget })
         
-        // Click on first circle
+        // Click on first circle (bad accuracy)
         .to(demoCursor, {
             scale: DEMO_CONFIG.clickScale,
             duration: DEMO_CONFIG.clickDuration / 2,
             ease: "power2.in",
             onComplete: () => {
-                createRipple(DEMO_CONFIG.circle1X, DEMO_CONFIG.circle1Y);
-                makeCircleDisappear(circle1, DEMO_CONFIG.circle1X, DEMO_CONFIG.circle1Y);
+                createRipple(DEMO_CONFIG.circle1ClickX, DEMO_CONFIG.circle1ClickY);
+                makeCircleDisappear(circle1, DEMO_CONFIG.circle1ClickX, DEMO_CONFIG.circle1ClickY);
+                showFeedback(feedback1, 0.1);
             }
         })
         .to(demoCursor, {
@@ -129,10 +151,10 @@ export function setupDemoAnimation() {
         // Pause briefly after click
         .to({}, { duration: DEMO_CONFIG.pauseBetweenClicks })
         
-        // Move to second circle (another quick burst)
+        // Move to second circle (perfect center position)
         .to(demoCursor, {
-            x: DEMO_CONFIG.circle2X,
-            y: DEMO_CONFIG.circle2Y,
+            x: DEMO_CONFIG.circle2ClickX,
+            y: DEMO_CONFIG.circle2ClickY,
             duration: DEMO_CONFIG.moveSpeed,
             ease: "power3.out" // Quick start, slow stop
         })
@@ -140,14 +162,15 @@ export function setupDemoAnimation() {
         // Pause at second target
         .to({}, { duration: DEMO_CONFIG.pauseAtTarget })
         
-        // Click on second circle
+        // Click on second circle (perfect accuracy)
         .to(demoCursor, {
             scale: DEMO_CONFIG.clickScale,
             duration: DEMO_CONFIG.clickDuration / 2,
             ease: "power2.in",
             onComplete: () => {
-                createRipple(DEMO_CONFIG.circle2X, DEMO_CONFIG.circle2Y);
-                makeCircleDisappear(circle2, DEMO_CONFIG.circle2X, DEMO_CONFIG.circle2Y);
+                createRipple(DEMO_CONFIG.circle2ClickX, DEMO_CONFIG.circle2ClickY);
+                makeCircleDisappear(circle2, DEMO_CONFIG.circle2ClickX, DEMO_CONFIG.circle2ClickY);
+                showFeedback(feedback2, 0.1);
             }
         })
         .to(demoCursor, {
