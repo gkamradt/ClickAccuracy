@@ -18,6 +18,7 @@ import {
 } from '@/lib/validation';
 // Import centralized scoring utilities
 import { calculateSpeedScore, calculatePerformanceScore } from '@/utils/scoring';
+import { logger } from '@/utils/logger';
 
 function getAverageTimePerHit(durationMs: number, totalHits: number): number {
   if (totalHits === 0) return 0;
@@ -35,8 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   setCorsHeaders(res);
   
   // Log incoming request
-  console.log(`🎯 [${new Date().toISOString()}] ${req.method} /api/runs`);
-  console.log('Headers:', {
+  logger.log(`🎯 [${new Date().toISOString()}] ${req.method} /api/runs`);
+  logger.log('Headers:', {
     'content-type': req.headers['content-type'],
     'user-agent': req.headers['user-agent']?.substring(0, 100) + '...',
     'x-forwarded-for': req.headers['x-forwarded-for']
@@ -44,19 +45,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('✅ Handled CORS preflight request');
+    logger.log('✅ Handled CORS preflight request');
     return res.status(200).end();
   }
   
   // Only allow POST requests
   if (req.method !== 'POST') {
-    console.log(`❌ Method ${req.method} not allowed`);
+    logger.log(`❌ Method ${req.method} not allowed`);
     return res.status(405).json({ error: 'Method not allowed' });
   }
   
   try {
     const { username, stats, click_logs, badges } = req.body;
-    console.log('📊 Received game data:', {
+    logger.log('📊 Received game data:', {
       username: username || 'Anonymous',
       totalHits: stats?.totalHits,
       avgAccuracy: stats?.avgAccuracy,
@@ -67,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // Validate input structure
     if (!stats || !click_logs) {
-      console.log('❌ Validation failed: Missing required fields');
+      logger.log('❌ Validation failed: Missing required fields');
       return res.status(400).json({ error: 'Missing required fields: stats, click_logs' });
     }
     
@@ -137,11 +138,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user_agent: userAgent
     };
     
-    console.log('💾 Inserting run into database...');
+    logger.log('💾 Inserting run into database...');
     const runId = await insertRun(runRecord);
-    console.log(`✅ Run inserted with ID: ${runId}`);
+    logger.log(`✅ Run inserted with ID: ${runId}`);
     
-    console.log('📈 Calculating rankings and comparisons...');
+    logger.log('📈 Calculating rankings and comparisons...');
     // Calculate rank and percentile
     const [speedRank, performanceRank, speedPercentile, performancePercentile, aiComparisons] = await Promise.all([
       getCurrentRank(speedScore, 'speed'),
@@ -151,7 +152,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       getAIComparisons(speedScore, performanceScore)
     ]);
     
-    console.log('🏆 Final results:', {
+    logger.log('🏆 Final results:', {
       runId,
       speedScore,
       performanceScore,
@@ -183,8 +184,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     
   } catch (error) {
-    console.error('💥 API Error in /api/runs:', error);
-    console.error('Stack trace:', (error as Error).stack);
+    logger.error('💥 API Error in /api/runs:', error);
+    logger.error('Stack trace:', (error as Error).stack);
     
     // Don't expose internal errors to client
     return res.status(500).json({ 

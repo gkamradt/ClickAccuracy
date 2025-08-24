@@ -12,7 +12,7 @@ import {
 
 // Initialize the game when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Click Accuracy Game initialized');
+    logger.log('Click Accuracy Game initialized');
     
     // Initialize game state
     const runState = new RunState();
@@ -111,24 +111,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global debug functions for testing (available in browser console)
 window.testDatabase = async function() {
-    console.log('🔧 Testing database connection...');
+    logger.log('🔧 Testing database connection...');
     try {
         const response = await fetch('/api/db-test');
         const result = await response.json();
-        console.log('Database test result:', result);
+        logger.log('Database test result:', result);
         return result;
     } catch (error) {
-        console.error('Database test failed:', error);
+        logger.error('Database test failed:', error);
         return { success: false, error: error.message };
     }
 };
 
 window.testLeaderboard = async function() {
-    console.log('🔧 Testing leaderboard API...');
+    logger.log('🔧 Testing leaderboard API...');
     try {
         const response = await fetch('/api/leaderboard');
         const result = await response.json();
-        console.log('Leaderboard test result:', {
+        logger.log('Leaderboard test result:', {
             success: response.ok,
             status: response.status,
             dataKeys: Object.keys(result),
@@ -141,7 +141,7 @@ window.testLeaderboard = async function() {
         });
         return result;
     } catch (error) {
-        console.error('Leaderboard test failed:', error);
+        logger.error('Leaderboard test failed:', error);
         return { success: false, error: error.message };
     }
 };

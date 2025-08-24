@@ -113,7 +113,7 @@ export function updateScorecard(runState, scoreElements) {
         };
         localStorage.setItem('click-accuracy:last', JSON.stringify(scorecardData));
     } catch (e) {
-        console.warn('Could not save scorecard to localStorage:', e);
+        logger.warn('Could not save scorecard to localStorage:', e);
     }
 }
 
@@ -122,7 +122,7 @@ export function showScorecard(runState, liveStats, scorecard, scoreElements) {
     updateScorecard(runState, scoreElements);
     scorecard.classList.remove('hidden');
     
-    console.log('Scorecard displayed:', {
+    logger.log('Scorecard displayed:', {
         hits: runState.hits,
         avgAccuracy: formatPercentage(runState.getAverageAccuracy()),
         bestAccuracy: formatPercentage(runState.bestAccuracy),

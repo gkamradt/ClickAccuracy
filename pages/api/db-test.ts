@@ -2,12 +2,13 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { sql } from '@vercel/postgres';
+import { logger } from '@/utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log('🔍 Database connection test started');
+  logger.log('🔍 Database connection test started');
   
   // Log environment variables
-  console.log('Environment variables check:', {
+  logger.log('Environment variables check:', {
     NODE_ENV: process.env.NODE_ENV,
     POSTGRES_URL: process.env.POSTGRES_URL ? '✅ Present (length: ' + process.env.POSTGRES_URL.length + ')' : '❌ Missing',
     POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING ? '✅ Present' : '❌ Missing',
@@ -16,11 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   try {
     // Try a simple query
-    console.log('📡 Attempting database connection...');
+    logger.log('📡 Attempting database connection...');
     const result = await sql`SELECT NOW() as current_time, version() as postgres_version`;
     
-    console.log('✅ Database connection successful!');
-    console.log('Query result:', result.rows[0]);
+    logger.log('✅ Database connection successful!');
+    logger.log('Query result:', result.rows[0]);
     
     return res.status(200).json({
       success: true,
@@ -34,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     
   } catch (error) {
-    console.error('💥 Database connection failed:', error);
+    logger.error('💥 Database connection failed:', error);
     
     return res.status(500).json({
       success: false,

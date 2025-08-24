@@ -85,6 +85,41 @@
 
         <!-- Leaderboard Content -->
         <div id="leaderboard-content" class="hidden space-y-8">
+            <!-- Scatter Plot Section -->
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 002 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 002 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Performance Distribution
+                    </h2>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="flex justify-center">
+                        <svg id="leaderboard-scatter-plot" width="700" height="300" class="bg-white border border-gray-300 rounded-lg">
+                            <!-- Scatter plot will be rendered here -->
+                        </svg>
+                    </div>
+                    <div class="flex justify-center mt-4 text-sm text-gray-600">
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                                <span>Named Players</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-purple-500 rounded-full mr-1"></div>
+                                <span>Anonymous Players</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                                <span>AI Players</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Main Leaderboard Section -->
             <section class="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div class="bg-gradient-to-r from-yellow-400 to-orange-500 px-6 py-4">
@@ -175,6 +210,9 @@
         </div>
     </footer>
 
+    <!-- Logger utility -->
+    <script src="js/utils/logger.js"></script>
+    
     <!-- Leaderboard JavaScript -->
     <script type="module" src="js/leaderboard.js"></script>
 </body>

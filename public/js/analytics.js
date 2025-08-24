@@ -42,7 +42,7 @@ async function loadScoringUtils() {
                 }
             };
         } catch (error) {
-            console.warn('Could not load scoring utilities:', error);
+            logger.warn('Could not load scoring utilities:', error);
             // Fallback scoring
             scoringUtils = {
                 calculateSpeedScore: () => 0,
@@ -176,8 +176,8 @@ export async function showGameOverModal(runState, liveStats, gameOverModal, shoo
         setupUsernameInput(submissionResult.runId);
     }
     
-    console.log('Game Over Modal displayed with', runState.logs.length, 'clicks visualized');
-    console.log('Enhanced Scores - Speed:', speedScore, 'Performance:', performanceScore);
+    logger.log('Game Over Modal displayed with', runState.logs.length, 'clicks visualized');
+    logger.log('Enhanced Scores - Speed:', speedScore, 'Performance:', performanceScore);
 }
 
 // Preload leaderboard data in background (call when game starts)
@@ -188,11 +188,11 @@ export async function preloadLeaderboardData() {
     const cacheMaxAge = 2 * 60 * 1000; // 2 minutes
     
     if (leaderboardDataCache.isLoading || (leaderboardDataCache.data && cacheAge < cacheMaxAge)) {
-        console.log('🏆 Leaderboard data already fresh or loading');
+        logger.log('🏆 Leaderboard data already fresh or loading');
         return;
     }
     
-    console.log('🔄 Preloading leaderboard data in background...');
+    logger.log('🔄 Preloading leaderboard data in background...');
     leaderboardDataCache.isLoading = true;
     
     try {
@@ -200,15 +200,15 @@ export async function preloadLeaderboardData() {
         if (response.ok) {
             leaderboardDataCache.data = await response.json();
             leaderboardDataCache.timestamp = now;
-            console.log('✅ Leaderboard data preloaded successfully:', {
+            logger.log('✅ Leaderboard data preloaded successfully:', {
                 hallOfFameCount: leaderboardDataCache.data.hall_of_fame?.length || 0,
                 scatterPointsCount: leaderboardDataCache.data.scatter_data?.length || 0
             });
         } else {
-            console.warn('⚠️ Failed to preload leaderboard data:', response.status);
+            logger.warn('⚠️ Failed to preload leaderboard data:', response.status);
         }
     } catch (error) {
-        console.error('❌ Error preloading leaderboard data:', error);
+        logger.error('❌ Error preloading leaderboard data:', error);
     } finally {
         leaderboardDataCache.isLoading = false;
     }
@@ -326,7 +326,7 @@ function addUsernameSection(modal) {
 // Submit game data to API
 async function submitGameData(runState, speedScore, performanceScore) {
     try {
-        console.log('🚀 Submitting game data to API...');
+        logger.log('🚀 Submitting game data to API...');
         
         // Prepare game stats
         const stats = {
@@ -358,7 +358,7 @@ async function submitGameData(runState, speedScore, performanceScore) {
             badges: []      // Badge calculation could be added here
         };
         
-        console.log('📊 Payload prepared:', {
+        logger.log('📊 Payload prepared:', {
             totalHits: stats.totalHits,
             avgAccuracy: (stats.avgAccuracy * 100).toFixed(1) + '%',
             durationMs: stats.durationMs,
@@ -367,8 +367,8 @@ async function submitGameData(runState, speedScore, performanceScore) {
         
         // Submit to API (works in both dev and production)
         const apiUrl = '/api/runs';
-        console.log('🚀 Making API call to:', window.location.origin + apiUrl);
-        console.log('🌍 Environment check:', {
+        logger.log('🚀 Making API call to:', window.location.origin + apiUrl);
+        logger.log('🌍 Environment check:', {
             hostname: window.location.hostname,
             origin: window.location.origin,
             isProduction: window.location.hostname !== 'localhost'
@@ -384,8 +384,8 @@ async function submitGameData(runState, speedScore, performanceScore) {
         
         if (response.ok) {
             const result = await response.json();
-            console.log('✅ Game data submitted successfully!', result);
-            console.log('🏆 Your Rankings:', {
+            logger.log('✅ Game data submitted successfully!', result);
+            logger.log('🏆 Your Rankings:', {
                 speedRank: result.rankings?.speed?.rank,
                 performanceRank: result.rankings?.performance?.rank,
                 speedPercentile: result.rankings?.speed?.percentile + 'th',
@@ -394,12 +394,12 @@ async function submitGameData(runState, speedScore, performanceScore) {
             return { runId: result.id, ...result };
         } else {
             const error = await response.text();
-            console.error('❌ Failed to submit game data:', response.status, error);
+            logger.error('❌ Failed to submit game data:', response.status, error);
             return null;
         }
         
     } catch (error) {
-        console.error('💥 Error submitting game data:', error);
+        logger.error('💥 Error submitting game data:', error);
         // Don't block the UI - game over modal should still show
         return null;
     }
@@ -412,7 +412,7 @@ function setupUsernameInput(runId) {
     const statusDiv = document.getElementById('username-status');
     
     if (!usernameInput || !saveButton || !statusDiv) {
-        console.warn('Username input elements not found');
+        logger.warn('Username input elements not found');
         return;
     }
     
@@ -464,7 +464,7 @@ function setupUsernameInput(runId) {
                 saveButton.textContent = 'Save';
             }
         } catch (error) {
-            console.error('Error saving username:', error);
+            logger.error('Error saving username:', error);
             statusDiv.textContent = '❌ Network error. Please try again.';
             statusDiv.className = 'text-xs text-red-500';
             saveButton.disabled = false;
@@ -520,10 +520,10 @@ async function createScatterPlotVisualization(modal, speedScore, performanceScor
     let leaderboardData;
     
     if (leaderboardDataCache.data) {
-        console.log('🚀 Using cached leaderboard data for scatter plot');
+        logger.log('🚀 Using cached leaderboard data for scatter plot');
         leaderboardData = leaderboardDataCache.data;
     } else {
-        console.log('🔄 No cached data, fetching leaderboard data...');
+        logger.log('🔄 No cached data, fetching leaderboard data...');
         try {
             const response = await fetch('/api/leaderboard');
             if (response.ok) {
@@ -531,14 +531,14 @@ async function createScatterPlotVisualization(modal, speedScore, performanceScor
                 // Cache this data for future use
                 leaderboardDataCache.data = leaderboardData;
                 leaderboardDataCache.timestamp = Date.now();
-                console.log('✅ Leaderboard data fetched and cached:', {
+                logger.log('✅ Leaderboard data fetched and cached:', {
                     scatterPointsCount: leaderboardData.scatter_data?.length || 0
                 });
             } else {
                 throw new Error(`API returned ${response.status}`);
             }
         } catch (error) {
-            console.error('❌ Failed to fetch leaderboard data:', error);
+            logger.error('❌ Failed to fetch leaderboard data:', error);
             // Use empty data for now
             leaderboardData = { scatter_data: [] };
         }
@@ -831,7 +831,7 @@ function renderModalScatterPlot(data) {
         g.appendChild(circle);
     });
     
-    console.log(`✅ Scatter plot rendered with ${data.length} data points`);
+    logger.log(`✅ Scatter plot rendered with ${data.length} data points`);
 }
 
 // Create custom tooltip for modal scatter plot

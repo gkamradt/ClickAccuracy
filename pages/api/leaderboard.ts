@@ -7,6 +7,7 @@ import {
   getAIBenchmarks, 
   getScatterData 
 } from '@/lib/database';
+import { logger } from '@/utils/logger';
 
 // Simple in-memory cache for leaderboard data
 let cachedData: any = null;
@@ -24,17 +25,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   setCorsHeaders(res);
   
   // Log incoming request
-  console.log(`📊 [${new Date().toISOString()}] ${req.method} /api/leaderboard`);
+  logger.log(`📊 [${new Date().toISOString()}] ${req.method} /api/leaderboard`);
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('✅ Handled CORS preflight request');
+    logger.log('✅ Handled CORS preflight request');
     return res.status(200).end();
   }
   
   // Only allow GET requests
   if (req.method !== 'GET') {
-    console.log(`❌ Method ${req.method} not allowed`);
+    logger.log(`❌ Method ${req.method} not allowed`);
     return res.status(405).json({ error: 'Method not allowed' });
   }
   
@@ -43,12 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const now = Date.now();
     const cacheAge = now - cacheTimestamp;
     if (cachedData && cacheAge < CACHE_DURATION) {
-      console.log(`💰 Serving leaderboard from cache (age: ${Math.round(cacheAge / 1000)}s)`);
+      logger.log(`💰 Serving leaderboard from cache (age: ${Math.round(cacheAge / 1000)}s)`);
       return res.status(200).json(cachedData);
     }
     
     // Fetch fresh data from database
-    console.log('🔄 Fetching fresh leaderboard data from database...');
+    logger.log('🔄 Fetching fresh leaderboard data from database...');
     const [hallOfFame, todaysBest, aiBenchmarks, scatterData] = await Promise.all([
       getHallOfFame(),
       getTodaysBest(),
@@ -71,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     };
     
-    console.log('✅ Successfully fetched leaderboard data:', {
+    logger.log('✅ Successfully fetched leaderboard data:', {
       hallOfFameEntries: hallOfFame.length,
       todaysEntries: todaysBest.length,
       aiBenchmarks: aiBenchmarks.length,
@@ -85,12 +86,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(leaderboardData);
     
   } catch (error) {
-    console.error('💥 API Error in /api/leaderboard:', error);
-    console.error('Stack trace:', (error as Error).stack);
+    logger.error('💥 API Error in /api/leaderboard:', error);
+    logger.error('Stack trace:', (error as Error).stack);
     
     // If we have cached data, serve it even if it's stale
     if (cachedData) {
-      console.log('⚠️  Serving stale cache due to database error');
+      logger.log('⚠️  Serving stale cache due to database error');
       return res.status(200).json({
         ...cachedData,
         warning: 'Data may be outdated due to temporary service issues'

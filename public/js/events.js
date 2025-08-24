@@ -69,8 +69,8 @@ export function createClickHandler(gameArea, runState, statElements, timerRef, g
             // Debug logging for accuracy verification
             const bullseyeRadius = runState.currentR * 0.05;
             const inBullseye = distance <= bullseyeRadius;
-            console.log(`Click Debug: distance=${distance.toFixed(2)}, radius=${runState.currentR}, bullseye=${bullseyeRadius.toFixed(2)}, inBullseye=${inBullseye}, accuracy=${(accuracy*100).toFixed(1)}%`);
-            console.log(`Coordinates: click=(${cx.toFixed(1)}, ${cy.toFixed(1)}), target=(${tx.toFixed(1)}, ${ty.toFixed(1)})`);
+            logger.log(`Click Debug: distance=${distance.toFixed(2)}, radius=${runState.currentR}, bullseye=${bullseyeRadius.toFixed(2)}, inBullseye=${inBullseye}, accuracy=${(accuracy*100).toFixed(1)}%`);
+            logger.log(`Coordinates: click=(${cx.toFixed(1)}, ${cy.toFixed(1)}), target=(${tx.toFixed(1)}, ${ty.toFixed(1)})`);
             
             // Visual debug: show click location with a temporary dot
             showClickDebug(gameArea, cx, cy);
@@ -112,7 +112,7 @@ export function createClickHandler(gameArea, runState, statElements, timerRef, g
             createGameConfetti(cx, cy, gameArea);
             createFloatingAccuracy(cx, cy, accuracy, gameArea);
             
-            console.log('Hit!', {
+            logger.log('Hit!', {
                 accuracy: (accuracy * 100).toFixed(1) + '%',
                 distance: distance.toFixed(2),
                 radius: runState.currentR,
@@ -132,7 +132,7 @@ export function createClickHandler(gameArea, runState, statElements, timerRef, g
             
             // Check if radius reached minimum
             if (runState.currentR <= CONFIG.MIN_RADIUS_PX) {
-                console.log('Target reached minimum size!');
+                logger.log('Target reached minimum size!');
                 timerRef.current = stopTimer(timerRef.current);
                 transitionToEnded(runState);
                 showGameOverModal(runState, gameOverElements.liveStats, gameOverElements.gameOverModal, gameOverElements.shootingRange, gameOverElements.finalElements);
@@ -143,7 +143,7 @@ export function createClickHandler(gameArea, runState, statElements, timerRef, g
                 renderTarget(gameArea, runState.target.x, runState.target.y, runState.currentR);
             }
         } else {
-            console.log('Miss!', {
+            logger.log('Miss!', {
                 distance: distance.toFixed(2),
                 radius: runState.currentR
             });
@@ -185,10 +185,10 @@ export function createStartHandler(gameArea, runState, modal, liveStats, statEle
         
         // Preload leaderboard data in background for faster modal display
         preloadLeaderboardData().catch(error => {
-            console.warn('Background leaderboard preload failed:', error);
+            logger.warn('Background leaderboard preload failed:', error);
         });
         
-        console.log('Game started:', {
+        logger.log('Game started:', {
             phase: runState.phase,
             startRadius: runState.startR,
             deltaRadius: runState.deltaR,
@@ -221,6 +221,6 @@ export function createRestartHandler(gameArea, runState, modal, gameOverModal, s
         // Disable game area interactions while modal is visible
         gameArea.style.pointerEvents = 'none';
         
-        console.log('Game reset to idle state');
+        logger.log('Game reset to idle state');
     };
 }

@@ -2,21 +2,22 @@
 
 import { sql } from '@vercel/postgres';
 import { RunRecord, LeaderboardEntry, ClickLog } from '@/types/database';
+import { logger } from '@/utils/logger';
 
 // Connection helper - Vercel Postgres handles connection pooling automatically
 export async function query(text: string, params: any[] = []) {
   try {
-    console.log('🔗 Executing database query...');
-    console.log('Environment check:', {
+    logger.log('🔗 Executing database query...');
+    logger.log('Environment check:', {
       POSTGRES_URL: process.env.POSTGRES_URL ? '✅ Present' : '❌ Missing',
       NODE_ENV: process.env.NODE_ENV
     });
     const result = await sql.query(text, params);
-    console.log(`✅ Query executed successfully (${result.rows.length} rows)`);
+    logger.log(`✅ Query executed successfully (${result.rows.length} rows)`);
     return result;
   } catch (error) {
-    console.error('💥 Database query error:', error);
-    console.error('Connection string available:', !!process.env.POSTGRES_URL);
+    logger.error('💥 Database query error:', error);
+    logger.error('Connection string available:', !!process.env.POSTGRES_URL);
     throw error;
   }
 }
@@ -54,9 +55,9 @@ export async function initializeDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_username ON runs(username)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_is_ai ON runs(is_ai)`;
 
-    console.log('Database initialized successfully');
+    logger.log('Database initialized successfully');
   } catch (error) {
-    console.error('Database initialization error:', error);
+    logger.error('Database initialization error:', error);
     throw error;
   }
 }
@@ -96,7 +97,7 @@ export async function insertRun(run: Omit<RunRecord, 'id' | 'created_at'>): Prom
 
     return result.rows[0].id;
   } catch (error) {
-    console.error('Error inserting run:', error);
+    logger.error('Error inserting run:', error);
     throw error;
   }
 }
@@ -135,7 +136,7 @@ export async function getHallOfFame(): Promise<LeaderboardEntry[]> {
       ai_model: row.ai_model
     }));
   } catch (error) {
-    console.error('Error getting hall of fame:', error);
+    logger.error('Error getting hall of fame:', error);
     throw error;
   }
 }
@@ -175,7 +176,7 @@ export async function getTodaysBest(): Promise<LeaderboardEntry[]> {
       ai_model: row.ai_model
     }));
   } catch (error) {
-    console.error('Error getting today\'s best:', error);
+    logger.error('Error getting today\'s best:', error);
     throw error;
   }
 }
@@ -213,7 +214,7 @@ export async function getAIBenchmarks(): Promise<LeaderboardEntry[]> {
       ai_model: row.ai_model
     }));
   } catch (error) {
-    console.error('Error getting AI benchmarks:', error);
+    logger.error('Error getting AI benchmarks:', error);
     throw error;
   }
 }
@@ -247,7 +248,7 @@ export async function getScatterData(limit: number = 100): Promise<Array<{
       username: row.username // Keep null as null, don't convert to 'Anonymous'
     }));
   } catch (error) {
-    console.error('Error getting scatter data:', error);
+    logger.error('Error getting scatter data:', error);
     throw error;
   }
 }
@@ -280,7 +281,7 @@ export async function calculatePercentile(score: number, metric: 'speed' | 'perf
     
     return Math.round((lowerCount / totalCount) * 100);
   } catch (error) {
-    console.error('Error calculating percentile:', error);
+    logger.error('Error calculating percentile:', error);
     throw error;
   }
 }
@@ -299,7 +300,7 @@ export async function getCurrentRank(score: number, metric: 'speed' | 'performan
     
     return parseInt(result.rows[0].rank);
   } catch (error) {
-    console.error('Error calculating rank:', error);
+    logger.error('Error calculating rank:', error);
     throw error;
   }
 }
@@ -325,7 +326,7 @@ export async function getAIComparisons(speedScore: number, performanceScore: num
     
     return comparisons;
   } catch (error) {
-    console.error('Error getting AI comparisons:', error);
+    logger.error('Error getting AI comparisons:', error);
     throw error;
   }
 }

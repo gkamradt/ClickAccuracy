@@ -4,8 +4,8 @@
   "description": "Click Accuracy Game with TypeScript backend and Vercel Postgres",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/inject-env.js && next dev",
+    "build": "node scripts/inject-env.js && next build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
