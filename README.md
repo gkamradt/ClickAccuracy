@@ -1,13 +1,6 @@
 # Click Accuracy Game
 
-A minimal single-page application that measures click accuracy on shrinking targets.
-
-## Features
-
-- **Click Accuracy Testing**: Click on shrinking circles that move after each hit
-- **Real-time Statistics**: Live tracking of hits, accuracy, target size, and elapsed time
-- **Shooting Range Analysis**: Visual analysis showing all your clicks relative to target centers
-- **Screenshot-friendly Results**: Modal results perfect for sharing
+A minimal single-page application that measures click accuracy on shrinking targets. Meant to test how well AI clicks on a screen.
 
 ## Game Rules
 
@@ -41,20 +34,3 @@ php -S localhost:8080
 ```
 
 Then visit `http://localhost:8080`
-
-## Technical Details
-
-- **Pure HTML/CSS/JavaScript** - No build process required
-- **Tailwind CSS** via CDN for styling
-- **Client-side only** - No backend needed
-- **Responsive design** - Works on desktop and mobile
-- **localStorage** persistence for last scorecard
-
-## Game Metrics
-
-- **Accuracy**: Calculated as `max(0, 1 - distance/radius)`
-- **Weighted Scoring**: Uses power-law weighting favoring smaller targets
-- **Target Shrinking**: Linear reduction by ~1/20th per hit
-- **Timing**: Precise millisecond timing for performance analysis
-
-Built with ❤️ for accuracy enthusiasts!

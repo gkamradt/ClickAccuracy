@@ -417,6 +417,17 @@ function renderScatterPlot(scatterData) {
                 performance: point.y.toFixed(1),
                 bgColor: '#dc2626'
             };
+            
+            // Add label for AI models (show names by default like in scorecard modal)
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', cx);
+            label.setAttribute('y', cy + 18);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('font-size', '10px');
+            label.setAttribute('font-weight', 'bold');
+            label.setAttribute('fill', '#dc2626');
+            label.textContent = point.model || point.username || 'AI';
+            g.appendChild(label);
         } else if (point.type === 'named') {
             circle.setAttribute('r', 4);
             circle.setAttribute('fill', '#3b82f6');
