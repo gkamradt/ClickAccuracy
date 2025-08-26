@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
     const gameArea = document.getElementById('game-area');
+    const clicksLeft = document.getElementById('clicks-left');
     const liveStats = document.getElementById('live-stats');
     const scorecard = document.getElementById('scorecard');
     
@@ -43,7 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         statAvgAccuracy: document.getElementById('stat-avg-accuracy'),
         statBestAccuracy: document.getElementById('stat-best-accuracy'),
         statCurrentSize: document.getElementById('stat-current-size'),
-        statElapsedTime: document.getElementById('stat-elapsed-time')
+        statElapsedTime: document.getElementById('stat-elapsed-time'),
+        clicksLeft
     };
     
     // Get scorecard elements (legacy)
@@ -78,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create event handlers
     const handleGameClick = createClickHandler(gameArea, runState, statElements, timerRef, gameOverElements);
     const handleStart = createStartHandler(gameArea, runState, modal, liveStats, statElements, timerRef);
-    const handleRestart = createRestartHandler(gameArea, runState, modal, gameOverModal, scorecard, liveStats, timerRef);
+    const handleRestart = createRestartHandler(gameArea, runState, modal, gameOverModal, scorecard, liveStats, timerRef, statElements);
     
     // Add click listener to game area
     gameArea.addEventListener('click', handleGameClick);
