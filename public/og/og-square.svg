@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <defs>
+    <!-- Dark mode background gradient -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b0b0f"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <!-- Soft radial glow -->
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Text gradient for logo/tagline -->
+    <linearGradient id="textGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#a5b4fc"/>
+    </linearGradient>
+
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#glow)"/>
+
+  <!-- Subtle target rings -->
+  <g opacity="0.12" stroke="white" fill="none" stroke-width="2">
+    <circle cx="600" cy="620" r="420"/>
+    <circle cx="600" cy="620" r="300"/>
+    <circle cx="600" cy="620" r="200"/>
+    <circle cx="600" cy="620" r="120"/>
+  </g>
+
+  <!-- Dot accents -->
+  <g fill="white" opacity="0.45">
+    <circle cx="250" cy="340" r="6"/>
+    <circle cx="980" cy="280" r="5"/>
+    <circle cx="1040" cy="820" r="4"/>
+    <circle cx="180" cy="880" r="5"/>
+  </g>
+
+  <!-- Logotype -->
+  <g filter="url(#soft-shadow)">
+    <text x="600" y="520" text-anchor="middle" font-family="Inter, -apple-system, system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="800" font-size="96" fill="url(#textGrad)" letter-spacing="1">
+      ClickAccuracy.com
+    </text>
+  </g>
+
+  <!-- Tagline (feel free to tweak copy) -->
+  <text x="600" y="640" text-anchor="middle" font-family="Inter, -apple-system, system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="700" font-size="44" fill="url(#textGrad)" opacity="0.98">
+    Can you out click AI?
+  </text>
+
+  
+
+  <!-- Crosshair mark -->
+  <g transform="translate(600, 860)" stroke="white" stroke-width="4" opacity="0.7">
+    <line x1="-28" y1="0" x2="-8" y2="0"/>
+    <line x1="8" y1="0" x2="28" y2="0"/>
+    <line x1="0" y1="-28" x2="0" y2="-8"/>
+    <line x1="0" y1="8" x2="0" y2="28"/>
+    <circle r="6" fill="white" stroke="none"/>
+  </g>
+</svg>
