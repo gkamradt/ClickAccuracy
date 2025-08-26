@@ -1,6 +1,7 @@
 // Click Accuracy Game - Rendering and UI
 
 import { formatPercentage, formatTime, randomTarget } from './game-logic.js';
+import { CONFIG } from './config.js';
 
 // Target Rendering Functions
 
@@ -45,22 +46,28 @@ export function updateTargetPosition(gameArea, runState) {
 
 export function updateLiveStats(runState, statElements) {
     if (runState.phase !== 'playing') return;
-    
-    const { statHits, statAvgAccuracy, statBestAccuracy, statCurrentSize, statElapsedTime } = statElements;
-    
+
+    const { statHits, statAvgAccuracy, statBestAccuracy, statCurrentSize, statElapsedTime, clicksLeft } = statElements;
+
     // Update hit count
     statHits.textContent = runState.hits;
-    
+
+    // Update remaining clicks display
+    if (clicksLeft) {
+        const remaining = Math.max(0, CONFIG.SHRINK_STEPS_APPROX - runState.hits);
+        clicksLeft.textContent = `${remaining} clicks left`;
+    }
+
     // Update average accuracy
     const avgAccuracy = runState.getAverageAccuracy();
     statAvgAccuracy.textContent = formatPercentage(avgAccuracy);
-    
+
     // Update best accuracy
     statBestAccuracy.textContent = formatPercentage(runState.bestAccuracy);
-    
+
     // Update current size
     statCurrentSize.textContent = runState.currentR + 'px';
-    
+
     // Update elapsed time
     const elapsed = runState.getDuration();
     statElapsedTime.textContent = formatTime(elapsed);

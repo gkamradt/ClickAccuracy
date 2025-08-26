@@ -197,7 +197,7 @@ export function createStartHandler(gameArea, runState, modal, liveStats, statEle
     };
 }
 
-export function createRestartHandler(gameArea, runState, modal, gameOverModal, scorecard, liveStats, timerRef) {
+export function createRestartHandler(gameArea, runState, modal, gameOverModal, scorecard, liveStats, timerRef, statElements) {
     return function handleRestart() {
         // Reset state
         transitionToIdle(runState);
@@ -212,6 +212,11 @@ export function createRestartHandler(gameArea, runState, modal, gameOverModal, s
         gameOverModal.classList.add('hidden');
         scorecard.classList.add('hidden');
         liveStats.classList.add('hidden');
+
+        // Reset clicks left display
+        if (statElements?.clicksLeft) {
+            statElements.clicksLeft.textContent = `${CONFIG.SHRINK_STEPS_APPROX} clicks left`;
+        }
         
         // Show start modal
         modal.style.display = 'flex';
