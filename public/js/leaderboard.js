@@ -252,7 +252,7 @@ function renderScatterPlot(scatterData) {
     if (!svg || !scatterData) return;
     
     svg.innerHTML = ''; // Clear previous content
-    
+
     // Chart configuration
     const config = {
         width: 700,
@@ -261,6 +261,10 @@ function renderScatterPlot(scatterData) {
         maxSpeed: 100,
         maxPerformance: 100
     };
+
+    // Make the SVG responsive by scaling to its container
+    svg.setAttribute('viewBox', `0 0 ${config.width} ${config.height}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     
     const chartWidth = config.width - config.margin.left - config.margin.right;
     const chartHeight = config.height - config.margin.top - config.margin.bottom;
