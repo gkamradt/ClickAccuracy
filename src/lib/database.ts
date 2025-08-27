@@ -120,7 +120,7 @@ export async function getHallOfFame(): Promise<LeaderboardEntry[]> {
       FROM runs 
       WHERE is_ai = false
       ORDER BY performance_score DESC 
-      LIMIT 10
+      LIMIT 1000
     `;
 
     return result.rows.map(row => ({
@@ -160,7 +160,7 @@ export async function getTodaysBest(): Promise<LeaderboardEntry[]> {
       WHERE is_ai = false 
         AND created_at >= NOW() - INTERVAL '24 hours'
       ORDER BY performance_score DESC 
-      LIMIT 10
+      LIMIT 1000
     `;
 
     return result.rows.map(row => ({

@@ -468,35 +468,61 @@ function renderScatterPlot(scatterData) {
         const tooltip = createLeaderboardTooltip(cx, cy, tooltipData, index, g);
         g.appendChild(tooltip);
         
-        // Create larger invisible hover zone for easier targeting
-        const hoverZone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        hoverZone.setAttribute('cx', cx);
-        hoverZone.setAttribute('cy', cy);
-        hoverZone.setAttribute('r', 15); // Much larger hover area
-        hoverZone.setAttribute('fill', 'transparent');
-        hoverZone.setAttribute('stroke', 'none');
-        hoverZone.setAttribute('cursor', 'pointer');
+        // Simplified hover implementation
+        circle.style.transition = 'all 0.2s ease';
+        circle.style.cursor = 'pointer';
         
-        // Hover event handlers
-        const showTooltip = () => {
-            tooltip.classList.add('visible');
-            circle.setAttribute('stroke-width', '3');
-            circle.setAttribute('stroke', '#000');
-        };
+        // Store original attributes for restoration
+        const originalRadius = circle.getAttribute('r');
         
-        const hideTooltip = () => {
-            tooltip.classList.remove('visible');
+        // Hover event handlers with improved visual feedback
+        circle.addEventListener('mouseenter', (e) => {
+            // Show tooltip
+            tooltip.style.opacity = '1';
+            tooltip.style.pointerEvents = 'none';
+            
+            // Enhance the circle appearance
+            circle.setAttribute('r', parseFloat(originalRadius) * 1.5);
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('stroke', '#1f2937');
+            circle.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))';
+            
+            // Bring circle to front
+            g.appendChild(circle);
+            g.appendChild(tooltip);
+        });
+        
+        circle.addEventListener('mouseleave', (e) => {
+            // Hide tooltip
+            tooltip.style.opacity = '0';
+            
+            // Restore original circle appearance
+            circle.setAttribute('r', originalRadius);
             circle.setAttribute('stroke-width', originalStrokeWidth);
             circle.setAttribute('stroke', originalStroke);
-        };
+            circle.style.filter = 'none';
+        });
         
-        // Add hover event listeners to both the zone and the actual circle
-        hoverZone.addEventListener('mouseenter', showTooltip);
-        hoverZone.addEventListener('mouseleave', hideTooltip);
-        circle.addEventListener('mouseenter', showTooltip);
-        circle.addEventListener('mouseleave', hideTooltip);
+        // Touch support for mobile devices
+        circle.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Toggle tooltip on touch
+            const isVisible = tooltip.style.opacity === '1';
+            if (isVisible) {
+                tooltip.style.opacity = '0';
+                circle.setAttribute('r', originalRadius);
+                circle.setAttribute('stroke-width', originalStrokeWidth);
+                circle.setAttribute('stroke', originalStroke);
+            } else {
+                tooltip.style.opacity = '1';
+                circle.setAttribute('r', parseFloat(originalRadius) * 1.5);
+                circle.setAttribute('stroke-width', '2');
+                circle.setAttribute('stroke', '#1f2937');
+                g.appendChild(circle);
+                g.appendChild(tooltip);
+            }
+        });
         
-        g.appendChild(hoverZone);
         g.appendChild(circle);
     });
 }
@@ -504,19 +530,10 @@ function renderScatterPlot(scatterData) {
 // Create custom tooltip for leaderboard scatter plot
 function createLeaderboardTooltip(cx, cy, data, id, parentGroup) {
     const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    tooltip.setAttribute('class', 'custom-tooltip');
     tooltip.setAttribute('id', `leaderboard-tooltip-${id}`);
-    
-    // Add CSS for visibility toggle
-    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-    style.textContent = `
-        .custom-tooltip { opacity: 0; transition: opacity 0.2s; }
-        .custom-tooltip.visible { opacity: 1; }
-    `;
-    if (!document.querySelector('#leaderboard-scatter-tooltip-styles')) {
-        style.setAttribute('id', 'leaderboard-scatter-tooltip-styles');
-        parentGroup.appendChild(style);
-    }
+    tooltip.style.opacity = '0';
+    tooltip.style.transition = 'opacity 0.2s ease';
+    tooltip.style.pointerEvents = 'none';
     
     // Position tooltip above the dot to avoid clipping
     const tooltipY = cy - 60;
