@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       getHallOfFame(),
       getTodaysBest(),
       getAIBenchmarks(),
-      getScatterData(150) // Get 150 recent runs for scatter plot
+      getScatterData(1000) // Get 150 recent runs for scatter plot
     ]);
     
     // Build response
